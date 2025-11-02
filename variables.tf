@@ -50,3 +50,13 @@ variable "signoz_storage_class" {
   type        = string
   default     = "standard-rwo"
 }
+
+variable "otel_collector_service_name" {
+  type    = string
+  default = "signoz-otel-collector-lb"
+}
+
+variable "otel_collector_app_label" {
+  type    = string
+  default = "signoz-otel-collector"
+}

@@ -20,18 +20,21 @@ data "google_container_cluster" "signoz_cluster" {
   depends_on = [google_container_cluster.signoz_cluster]
 }
 
+# Kubernetes provider for GKE
 provider "kubernetes" {
-  host  = data.google_container_cluster.signoz_cluster.endpoint
-  token = data.google_client_config.default.access_token
+  host                   = "https://${data.google_container_cluster.signoz_cluster.endpoint}"
+  token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(
     data.google_container_cluster.signoz_cluster.master_auth[0].cluster_ca_certificate
   )
 }
 
+
+# Helm provider pointing to the same Kubernetes cluster
 provider "helm" {
   kubernetes {
-    host  = data.google_container_cluster.signoz_cluster.endpoint
-    token = data.google_client_config.default.access_token
+    host                   = "https://${data.google_container_cluster.signoz_cluster.endpoint}"
+    token                  = data.google_client_config.default.access_token
     cluster_ca_certificate = base64decode(
       data.google_container_cluster.signoz_cluster.master_auth[0].cluster_ca_certificate
     )
