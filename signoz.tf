@@ -3,14 +3,18 @@
 ###############################################
 
 resource "helm_release" "signoz" {
-  name       = "signoz"
-  repository = "https://charts.signoz.io"
-  chart      = "signoz"
-  version    = var.signoz_chart_version
+  name             = "signoz"
+  repository       = "https://charts.signoz.io"
+  chart            = "signoz"
+  version          = var.signoz_chart_version
   namespace        = var.signoz_namespace
   create_namespace = true
-  depends_on = [google_container_cluster.signoz_cluster]
-  timeout = 3600
+  depends_on       = [google_container_cluster.signoz_cluster]
+  timeout          = 3600
+
+  ###############################################
+  # Storage & ClickHouse config
+  ###############################################
 
   set {
     name  = "global.storageClass"
@@ -26,13 +30,11 @@ resource "helm_release" "signoz" {
   # Expose OpenTelemetry Collector
   ###############################################
 
-  # Service type = LoadBalancer
   set {
     name  = "otelCollector.service.type"
     value = "LoadBalancer"
   }
 
-  # Expose OTLP ports
   set {
     name  = "otelCollector.service.ports.otlpHttp.port"
     value = "4318"
@@ -43,7 +45,6 @@ resource "helm_release" "signoz" {
     value = "4317"
   }
 
-  # Make the collector listen on all interfaces
   set {
     name  = "otelCollector.config.receivers.otlp.protocols.grpc.endpoint"
     value = "0.0.0.0:4317"
@@ -54,6 +55,19 @@ resource "helm_release" "signoz" {
     value = "0.0.0.0:4318"
   }
 
+  ###############################################
+  # Expose SigNoz Main Service (UI + API)
+  ###############################################
+
+  set {
+    name  = "service.type"
+    value = "LoadBalancer"
+  }
+
+  set {
+  name  = "service.port"
+  value = "8080"
+  }
 }
 
 ###############################################
@@ -65,6 +79,19 @@ data "kubernetes_service" "otel_collector" {
 
   metadata {
     name      = "signoz-otel-collector"
+    namespace = var.signoz_namespace
+  }
+}
+
+###############################################
+# Get SigNoz Main Service info
+###############################################
+
+data "kubernetes_service" "signoz_main" {
+  depends_on = [helm_release.signoz]
+
+  metadata {
+    name      = "signoz"
     namespace = var.signoz_namespace
   }
 }
