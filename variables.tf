@@ -42,7 +42,7 @@ variable "signoz_namespace" {
 variable "signoz_chart_version" {
   description = "Version of the SigNoz Helm chart"
   type        = string
-  default     = "0.98.1" # Check https://charts.signoz.io for latest
+  default     = "0.99.0" # Check https://charts.signoz.io for latest
 }
 
 variable "signoz_storage_class" {

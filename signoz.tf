@@ -26,46 +26,70 @@ resource "helm_release" "signoz" {
     value = "true"
   }
 
+  # ###############################################
+  # # Expose OpenTelemetry Collector
+  # ###############################################
+
+  # set {
+  #   name  = "otelCollector.service.type"
+  #   value = "LoadBalancer"
+  # }
+
+  # set {
+  #   name  = "otelCollector.service.ports.otlpHttp.port"
+  #   value = "4318"
+  # }
+
+  # set {
+  #   name  = "otelCollector.service.ports.otlpGrpc.port"
+  #   value = "4317"
+  # }
+
+  # set {
+  #   name  = "otelCollector.config.receivers.otlp.protocols.grpc.endpoint"
+  #   value = "0.0.0.0:4317"
+  # }
+
+  # set {
+  #   name  = "otelCollector.config.receivers.otlp.protocols.http.endpoint"
+  #   value = "0.0.0.0:4318"
+  # }
+
+ ###############################################
+  # Increase Resource Allocation for OpenTelemetry Collector
   ###############################################
-  # Expose OpenTelemetry Collector
-  ###############################################
+
 
   set {
-    name  = "otelCollector.service.type"
-    value = "LoadBalancer"
+    name  = "otelCollector.resources.requests.cpu"
+    value = "1"
   }
 
   set {
-    name  = "otelCollector.service.ports.otlpHttp.port"
-    value = "4318"
+    name  = "otelCollector.resources.requests.memory"
+    value = "2Gi"
   }
 
   set {
-    name  = "otelCollector.service.ports.otlpGrpc.port"
-    value = "4317"
+    name  = "otelCollector.resources.limits.cpu"
+    value = "1"
   }
 
   set {
-    name  = "otelCollector.config.receivers.otlp.protocols.grpc.endpoint"
-    value = "0.0.0.0:4317"
+    name  = "otelCollector.resources.limits.memory"
+    value = "2Gi"
   }
-
-  set {
-    name  = "otelCollector.config.receivers.otlp.protocols.http.endpoint"
-    value = "0.0.0.0:4318"
-  }
-
   ###############################################
   # Expose SigNoz Main Service (UI + API)
   ###############################################
 
   set {
-    name  = "service.type"
+    name  = "signoz.service.type"
     value = "LoadBalancer"
   }
 
   set {
-  name  = "service.port"
+  name  = "signoz.service.port"
   value = "8080"
   }
 }
