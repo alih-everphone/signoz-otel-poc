@@ -26,35 +26,6 @@ resource "helm_release" "signoz" {
     value = "true"
   }
 
-  # ###############################################
-  # # Expose OpenTelemetry Collector
-  # ###############################################
-
-  # set {
-  #   name  = "otelCollector.service.type"
-  #   value = "LoadBalancer"
-  # }
-
-  # set {
-  #   name  = "otelCollector.service.ports.otlpHttp.port"
-  #   value = "4318"
-  # }
-
-  # set {
-  #   name  = "otelCollector.service.ports.otlpGrpc.port"
-  #   value = "4317"
-  # }
-
-  # set {
-  #   name  = "otelCollector.config.receivers.otlp.protocols.grpc.endpoint"
-  #   value = "0.0.0.0:4317"
-  # }
-
-  # set {
-  #   name  = "otelCollector.config.receivers.otlp.protocols.http.endpoint"
-  #   value = "0.0.0.0:4318"
-  # }
-
  ###############################################
   # Increase Resource Allocation for OpenTelemetry Collector
   ###############################################
@@ -79,19 +50,7 @@ resource "helm_release" "signoz" {
     name  = "otelCollector.resources.limits.memory"
     value = "2Gi"
   }
-  ###############################################
-  # Expose SigNoz Main Service (UI + API)
-  ###############################################
 
-  set {
-    name  = "signoz.service.type"
-    value = "LoadBalancer"
-  }
-
-  set {
-  name  = "signoz.service.port"
-  value = "8080"
-  }
 }
 
 ###############################################
@@ -117,5 +76,82 @@ data "kubernetes_service" "signoz_main" {
   metadata {
     name      = "signoz"
     namespace = var.signoz_namespace
+  }
+}
+
+  # ###############################################
+  # # Kubernetes Ingress Configuration
+  # ###############################################
+resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
+  metadata {
+    name      = "signoz-frontend-ingress"
+    namespace = "signoz"
+
+    annotations = {
+      "kubernetes.io/ingress.class"                     = "gce"
+      "ingress.gcp.kubernetes.io/pre-shared-cert"      = "everphone-dev"
+      "kubernetes.io/ingress.allow-http"               = "false"
+    }
+  }
+
+  spec {
+    ingress_class_name = "gce"
+
+    rule {
+      host = "signoz.everphone.dev"
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = "signoz"
+              port {
+                number = 8080
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
+  metadata {
+    name      = "signoz-otel-ingress"
+    namespace = "signoz"
+
+    annotations = {
+      "kubernetes.io/ingress.class" = "gce"
+      "kubernetes.io/ingress.allow-http" = "true"
+    }
+  }
+
+  spec {
+    ingress_class_name = "gce"
+
+    rule {
+      host = "signoz-ingest.everphone.dev"
+      http {
+        path {
+          path      = "/v1/traces"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = "signoz-otel-collector"
+              port { number = 4318 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+data "kubernetes_ingress_v1" "signoz_otel_ingress" {
+  metadata {
+    name      = kubernetes_ingress_v1.signoz_otel_ingress.metadata[0].name
+    namespace = kubernetes_ingress_v1.signoz_otel_ingress.metadata[0].namespace
   }
 }

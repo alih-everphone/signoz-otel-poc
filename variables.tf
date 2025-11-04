@@ -60,7 +60,3 @@ variable "otel_collector_app_label" {
   type    = string
   default = "signoz-otel-collector"
 }
-
-#variable "github_repo" {
-#  description = "GitHub repository in the form owner/repo"
-#}
