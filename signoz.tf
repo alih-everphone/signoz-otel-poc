@@ -54,22 +54,23 @@ resource "helm_release" "signoz" {
   set {
     name  = "clickhouse.resources.requests.cpu"
     value = "2"
+}
+
+  set {
+      name  = "clickhouse.resources.requests.memory"
+      value = "4Gi"
   }
 
   set {
-    name  = "clickhouse.resources.requests.memory"
-    value = "4Gi"
+      name  = "clickhouse.resources.limits.cpu"
+      value = "4"
   }
 
   set {
-    name  = "clickhouse.resources.limits.cpu"
-    value = "2"
+      name  = "clickhouse.resources.limits.memory"
+      value = "4Gi"
   }
 
-  set {
-    name  = "clickhouse.resources.limits.memory"
-    value = "4Gi"
-  }
   set {
     name  = "signoz.resources.requests.cpu"
     value = "2"
