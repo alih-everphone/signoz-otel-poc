@@ -33,22 +33,80 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "otelCollector.resources.requests.cpu"
-    value = "1"
+    value = "2"
   }
 
   set {
     name  = "otelCollector.resources.requests.memory"
-    value = "2Gi"
+    value = "4Gi"
   }
 
   set {
     name  = "otelCollector.resources.limits.cpu"
-    value = "1"
+    value = "2"
   }
 
   set {
     name  = "otelCollector.resources.limits.memory"
-    value = "2Gi"
+    value = "4Gi"
+  }
+
+  set {
+    name  = "clickhouse.resources.requests.cpu"
+    value = "2"
+  }
+
+  set {
+    name  = "clickhouse.resources.requests.memory"
+    value = "4Gi"
+  }
+
+  set {
+    name  = "clickhouse.resources.limits.cpu"
+    value = "2"
+  }
+
+  set {
+    name  = "clickhouse.resources.limits.memory"
+    value = "4Gi"
+  }
+  set {
+    name  = "signoz.resources.requests.cpu"
+    value = "2"
+  }
+
+  set {
+    name  = "signoz.resources.requests.memory"
+    value = "4Gi"
+  }
+
+  set {
+    name  = "signoz.resources.limits.cpu"
+    value = "2"
+  }
+
+  set {
+    name  = "signoz.resources.limits.memory"
+    value = "4Gi"
+  }
+  set {
+    name  = "zookeeper.resources.requests.cpu"
+    value = "2"
+  }
+
+  set {
+    name  = "zookeeper.resources.requests.memory"
+    value = "4Gi"
+  }
+
+  set {
+    name  = "zookeeper.resources.limits.cpu"
+    value = "2"
+  }
+
+  set {
+    name  = "zookeeper.resources.limits.memory"
+    value = "4Gi"
   }
 
 }
@@ -124,7 +182,8 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
 
     annotations = {
       "kubernetes.io/ingress.class" = "gce"
-      "kubernetes.io/ingress.allow-http" = "true"
+      "ingress.gcp.kubernetes.io/pre-shared-cert" = "everphone-dev"
+      "kubernetes.io/ingress.allow-http" = "false"
     }
   }
 
