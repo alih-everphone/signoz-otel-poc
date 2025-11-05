@@ -125,6 +125,8 @@ data "kubernetes_service" "otel_collector" {
   }
 }
 
+
+
 ###############################################
 # Get SigNoz Main Service info
 ###############################################
@@ -176,27 +178,55 @@ resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
   }
 }
 
-# resource "kubernetes_manifest" "otel_backendconfig" {
-#   manifest = {
-#     "apiVersion" = "cloud.google.com/v1"
-#     "kind"       = "BackendConfig"
-#     "metadata" = {
-#       "name"      = "otel-backendconfig"
-#       "namespace" = var.signoz_namespace
-#     }
-#     "spec" = {
-#       "healthCheck" = {
-#           "type"               = "HTTP"
-#           "requestPath"        = "/"
-#           "port"               = 13133
-#           "checkIntervalSec"   = 10
-#           "timeoutSec"         = 5
-#           "healthyThreshold"   = 1
-#           "unhealthyThreshold" = 3
-#         }
-#   }
-# }
-# }
+
+###############################################
+# BackendConfig: health check on port 13133
+###############################################
+resource "kubernetes_manifest" "otel_backendconfig" {
+  manifest = {
+    apiVersion = "cloud.google.com/v1"
+    kind       = "BackendConfig"
+    metadata = {
+      name      = "otel-backendconfig"
+      namespace = var.signoz_namespace
+    }
+    spec = {
+      healthCheck = {
+        type               = "HTTP"
+        port               = 13133
+        requestPath        = "/"
+        checkIntervalSec   = 10
+        timeoutSec         = 5
+        healthyThreshold   = 1
+        unhealthyThreshold = 3
+      }
+    }
+  }
+}
+
+
+###############################################
+# Ingress: traffic on 4318, health via BackendConfig
+###############################################
+
+
+resource "kubernetes_annotations" "otel_backendconfig_link" {
+  api_version = "v1"
+  kind        = "Service"
+
+  metadata {
+    name      = data.kubernetes_service.otel_collector.metadata[0].name
+    namespace = var.signoz_namespace
+  }
+  force = true
+  annotations = {
+    "cloud.google.com/backend-config" = jsonencode({
+      ports = {
+        "otlp-http" = kubernetes_manifest.otel_backendconfig.manifest["metadata"]["name"]
+      }
+    })
+  }
+}
 
 
 resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
@@ -205,9 +235,12 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
     namespace = var.signoz_namespace
 
     annotations = {
-      "kubernetes.io/ingress.class"       = "gce"
+      "kubernetes.io/ingress.class"               = "gce"
       "ingress.gcp.kubernetes.io/pre-shared-cert" = "everphone-dev-cert"
-      "kubernetes.io/ingress.allow-http" = "false"
+      "kubernetes.io/ingress.allow-http"          = "false"
+      "cloud.google.com/backend-config" = jsonencode({
+        "default" = kubernetes_manifest.otel_backendconfig.manifest["metadata"]["name"]
+      })
     }
   }
 
@@ -218,20 +251,25 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
       host = "signoz-ingest.everphone.dev"
       http {
         path {
-            path      = "/"
-            path_type = "Prefix"
-            backend {
+          path      = "/v1"
+          path_type = "Prefix"
+          backend {
               service {
-                name = "signoz-otel-collector"
-                port { number = 4318 }
+                name = data.kubernetes_service.otel_collector.metadata[0].name
+                port {
+                  name = "otlp-http" # 4318
+                }
               }
             }
-          }
+        }
       }
     }
   }
 
-  depends_on = [helm_release.signoz]
+  depends_on = [
+    helm_release.signoz,
+    kubernetes_manifest.otel_backendconfig
+  ]
 }
 
 
