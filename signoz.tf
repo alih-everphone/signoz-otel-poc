@@ -176,27 +176,27 @@ resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
   }
 }
 
-resource "kubernetes_manifest" "otel_backendconfig" {
-  manifest = {
-    "apiVersion" = "cloud.google.com/v1"
-    "kind"       = "BackendConfig"
-    "metadata" = {
-      "name"      = "otel-backendconfig"
-      "namespace" = var.signoz_namespace
-    }
-    "spec" = {
-      "healthCheck" = {
-          "type"               = "HTTP"
-          "requestPath"        = "/"
-          "port"               = 13133
-          "checkIntervalSec"   = 10
-          "timeoutSec"         = 5
-          "healthyThreshold"   = 1
-          "unhealthyThreshold" = 3
-        }
-  }
-}
-}
+# resource "kubernetes_manifest" "otel_backendconfig" {
+#   manifest = {
+#     "apiVersion" = "cloud.google.com/v1"
+#     "kind"       = "BackendConfig"
+#     "metadata" = {
+#       "name"      = "otel-backendconfig"
+#       "namespace" = var.signoz_namespace
+#     }
+#     "spec" = {
+#       "healthCheck" = {
+#           "type"               = "HTTP"
+#           "requestPath"        = "/"
+#           "port"               = 13133
+#           "checkIntervalSec"   = 10
+#           "timeoutSec"         = 5
+#           "healthyThreshold"   = 1
+#           "unhealthyThreshold" = 3
+#         }
+#   }
+# }
+# }
 
 
 resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
@@ -207,10 +207,7 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
     annotations = {
       "kubernetes.io/ingress.class"       = "gce"
       "ingress.gcp.kubernetes.io/pre-shared-cert" = "everphone-dev-cert"
-      "kubernetes.io/ingress.allow-http" = "true"
-      "cloud.google.com/backend-config"   = jsonencode({
-        "default" = kubernetes_manifest.otel_backendconfig.manifest["metadata"]["name"]
-      })
+      "kubernetes.io/ingress.allow-http" = "false"
     }
   }
 
@@ -234,7 +231,7 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
     }
   }
 
-  depends_on = [helm_release.signoz, kubernetes_manifest.otel_backendconfig]
+  depends_on = [helm_release.signoz]
 }
 
 
