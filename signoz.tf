@@ -33,32 +33,32 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "otelCollector.resources.requests.cpu"
-    value = "2"
+    value = "4"
   }
 
   set {
     name  = "otelCollector.resources.requests.memory"
-    value = "4Gi"
+    value = "8Gi"
   }
 
   set {
     name  = "otelCollector.resources.limits.cpu"
-    value = "2"
+    value = "4"
   }
 
   set {
     name  = "otelCollector.resources.limits.memory"
-    value = "4Gi"
+    value = "8Gi"
   }
 
   set {
     name  = "clickhouse.resources.requests.cpu"
-    value = "2"
+    value = "4"
 }
 
   set {
       name  = "clickhouse.resources.requests.memory"
-      value = "4Gi"
+      value = "8Gi"
   }
 
   set {
@@ -68,7 +68,7 @@ resource "helm_release" "signoz" {
 
   set {
       name  = "clickhouse.resources.limits.memory"
-      value = "4Gi"
+      value = "8Gi"
   }
 
   set {
@@ -148,7 +148,7 @@ resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
 
     annotations = {
       "kubernetes.io/ingress.class"                     = "gce"
-      "ingress.gcp.kubernetes.io/pre-shared-cert"      = "everphone-dev"
+      "ingress.gcp.kubernetes.io/pre-shared-cert"      = "everphone-dev-cert"
       "kubernetes.io/ingress.allow-http"               = "false"
     }
   }
@@ -176,15 +176,41 @@ resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
   }
 }
 
+resource "kubernetes_manifest" "otel_backendconfig" {
+  manifest = {
+    "apiVersion" = "cloud.google.com/v1"
+    "kind"       = "BackendConfig"
+    "metadata" = {
+      "name"      = "otel-backendconfig"
+      "namespace" = var.signoz_namespace
+    }
+    "spec" = {
+      "healthCheck" = {
+          "type"               = "HTTP"
+          "requestPath"        = "/"
+          "port"               = 13133
+          "checkIntervalSec"   = 10
+          "timeoutSec"         = 5
+          "healthyThreshold"   = 1
+          "unhealthyThreshold" = 3
+        }
+  }
+}
+}
+
+
 resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
   metadata {
     name      = "signoz-otel-ingress"
-    namespace = "signoz"
+    namespace = var.signoz_namespace
 
     annotations = {
-      "kubernetes.io/ingress.class" = "gce"
-      "ingress.gcp.kubernetes.io/pre-shared-cert" = "everphone-dev"
-      "kubernetes.io/ingress.allow-http" = "false"
+      "kubernetes.io/ingress.class"       = "gce"
+      "ingress.gcp.kubernetes.io/pre-shared-cert" = "everphone-dev-cert"
+      "kubernetes.io/ingress.allow-http" = "true"
+      "cloud.google.com/backend-config"   = jsonencode({
+        "default" = kubernetes_manifest.otel_backendconfig.manifest["metadata"]["name"]
+      })
     }
   }
 
@@ -195,19 +221,22 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
       host = "signoz-ingest.everphone.dev"
       http {
         path {
-          path      = "/v1/traces"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = "signoz-otel-collector"
-              port { number = 4318 }
+            path      = "/"
+            path_type = "Prefix"
+            backend {
+              service {
+                name = "signoz-otel-collector"
+                port { number = 4318 }
+              }
             }
           }
-        }
       }
     }
   }
+
+  depends_on = [helm_release.signoz, kubernetes_manifest.otel_backendconfig]
 }
+
 
 data "kubernetes_ingress_v1" "signoz_otel_ingress" {
   metadata {
