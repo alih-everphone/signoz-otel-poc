@@ -223,6 +223,7 @@ resource "kubernetes_annotations" "otel_backendconfig_link" {
     "cloud.google.com/backend-config" = jsonencode({
       ports = {
         "otlp-http" = kubernetes_manifest.otel_backendconfig.manifest["metadata"]["name"]
+        "otlp" = kubernetes_manifest.otel_backendconfig.manifest["metadata"]["name"]
       }
     })
   }
@@ -258,6 +259,18 @@ resource "kubernetes_ingress_v1" "signoz_otel_ingress" {
                 name = data.kubernetes_service.otel_collector.metadata[0].name
                 port {
                   name = "otlp-http" # 4318
+                }
+              }
+            }
+        }
+        path {
+          path      = "/"
+          path_type = "Prefix"
+          backend {
+              service {
+                name = data.kubernetes_service.otel_collector.metadata[0].name
+                port {
+                  name = "otlp" # 4317
                 }
               }
             }
