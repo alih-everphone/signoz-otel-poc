@@ -38,7 +38,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "otelCollector.resources.requests.memory"
-    value = "4Gi"
+    value = "2Gi"
   }
 
   set {
@@ -48,7 +48,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "otelCollector.resources.limits.memory"
-    value = "8Gi"
+    value = "2Gi"
   }
 
   # set {
@@ -63,7 +63,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "clickhouse.resources.requests.cpu"
-    value = "2"
+    value = "4"
 }
 
   set {
@@ -73,7 +73,7 @@ resource "helm_release" "signoz" {
 
   set {
       name  = "clickhouse.resources.limits.cpu"
-      value = "2"
+      value = "4"
   }
 
   set {
@@ -88,7 +88,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "signoz.resources.requests.memory"
-    value = "4Gi"
+    value = "2Gi"
   }
 
   set {
