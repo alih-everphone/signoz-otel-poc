@@ -33,17 +33,17 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "otelCollector.resources.requests.cpu"
-    value = "4"
+    value = "2"
   }
 
   set {
     name  = "otelCollector.resources.requests.memory"
-    value = "8Gi"
+    value = "4Gi"
   }
 
   set {
     name  = "otelCollector.resources.limits.cpu"
-    value = "4"
+    value = "2"
   }
 
   set {
@@ -51,24 +51,34 @@ resource "helm_release" "signoz" {
     value = "8Gi"
   }
 
+  # set {
+  #   name = "otelCollector.config.receiver.otlp.protocols.http.cors.allowedOrigins[0]"
+  #   value = "*.everphone.app"
+  # }
+
+  # set {
+  #   name = "otelCollector.config.receiver.otlp.protocols.http.cors.allowedOrigins[1]"
+  #   value = "*.everphone.dev"
+  # }
+
   set {
     name  = "clickhouse.resources.requests.cpu"
-    value = "4"
+    value = "2"
 }
 
   set {
       name  = "clickhouse.resources.requests.memory"
-      value = "8Gi"
+      value = "4Gi"
   }
 
   set {
       name  = "clickhouse.resources.limits.cpu"
-      value = "4"
+      value = "2"
   }
 
   set {
       name  = "clickhouse.resources.limits.memory"
-      value = "8Gi"
+      value = "4Gi"
   }
 
   set {
@@ -88,7 +98,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "signoz.resources.limits.memory"
-    value = "4Gi"
+    value = "2Gi"
   }
   set {
     name  = "zookeeper.resources.requests.cpu"
@@ -97,7 +107,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "zookeeper.resources.requests.memory"
-    value = "4Gi"
+    value = "2Gi"
   }
 
   set {
@@ -107,7 +117,7 @@ resource "helm_release" "signoz" {
 
   set {
     name  = "zookeeper.resources.limits.memory"
-    value = "4Gi"
+    value = "2Gi"
   }
 
 }
