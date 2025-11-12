@@ -13,113 +13,12 @@ resource "helm_release" "signoz" {
   timeout          = 3600
 
   ###############################################
-  # Storage & ClickHouse config
+  # Use values.yaml instead of individual `set` blocks
   ###############################################
 
-  set {
-    name  = "global.storageClass"
-    value = var.signoz_storage_class
-  }
-
-  set {
-    name  = "clickhouse.installCustomStorageClass"
-    value = "true"
-  }
-
- ###############################################
-  # Increase Resource Allocation for OpenTelemetry Collector
-  ###############################################
-
-
-  set {
-    name  = "otelCollector.resources.requests.cpu"
-    value = "2"
-  }
-
-  set {
-    name  = "otelCollector.resources.requests.memory"
-    value = "2Gi"
-  }
-
-  set {
-    name  = "otelCollector.resources.limits.cpu"
-    value = "2"
-  }
-
-  set {
-    name  = "otelCollector.resources.limits.memory"
-    value = "2Gi"
-  }
-
-  # set {
-  #   name = "otelCollector.config.receiver.otlp.protocols.http.cors.allowedOrigins[0]"
-  #   value = "*.everphone.app"
-  # }
-
-  # set {
-  #   name = "otelCollector.config.receiver.otlp.protocols.http.cors.allowedOrigins[1]"
-  #   value = "*.everphone.dev"
-  # }
-
-  set {
-    name  = "clickhouse.resources.requests.cpu"
-    value = "4"
-}
-
-  set {
-      name  = "clickhouse.resources.requests.memory"
-      value = "4Gi"
-  }
-
-  set {
-      name  = "clickhouse.resources.limits.cpu"
-      value = "4"
-  }
-
-  set {
-      name  = "clickhouse.resources.limits.memory"
-      value = "4Gi"
-  }
-
-  set {
-    name  = "signoz.resources.requests.cpu"
-    value = "2"
-  }
-
-  set {
-    name  = "signoz.resources.requests.memory"
-    value = "2Gi"
-  }
-
-  set {
-    name  = "signoz.resources.limits.cpu"
-    value = "2"
-  }
-
-  set {
-    name  = "signoz.resources.limits.memory"
-    value = "2Gi"
-  }
-  set {
-    name  = "zookeeper.resources.requests.cpu"
-    value = "2"
-  }
-
-  set {
-    name  = "zookeeper.resources.requests.memory"
-    value = "2Gi"
-  }
-
-  set {
-    name  = "zookeeper.resources.limits.cpu"
-    value = "2"
-  }
-
-  set {
-    name  = "zookeeper.resources.limits.memory"
-    value = "2Gi"
-  }
-
+  values = [
+    file("${path.module}/values.yaml")
+  ]
 }
 
 ###############################################

@@ -3,12 +3,67 @@ global:
 
 clickhouse:
   installCustomStorageClass: true
+  resources:
+    requests:
+      cpu: 4
+      memory: 8Gi
+    limits:
+      cpu: 4
+      memory: 8Gi
+  zookeeper:
+    resources:
+      requests:
+        cpu: 2
+        memory: 2Gi
+      limits:
+        cpu: 2
+        memory: 2Gi
+  profiles:
+    default:
+      max_memory_usage: 4050539136 # 3.77 GiB
 
 otelCollector:
   resources:
     requests:
-      cpu: 1
+      cpu: 2
       memory: 2Gi
     limits:
-      cpu: 1
+      cpu: 2
       memory: 2Gi
+  config:
+    receivers:
+      googlecloudpubsub:
+        project: ali-hassan-devops-playground
+        subscription: projects/ali-hassan-devops-playground/subscriptions/signoz-test-python-sub
+        encoding: raw_text
+      otlp:
+        protocols:
+          http:
+            cors:
+              allowed_origins:
+                - "*.everphone.app"
+                - "*.everphone.dev"
+                - "*.run.app"
+    exporters:
+      otlp:
+        endpoint: signoz-ingest.everphone.dev:4317
+        tls:
+          insecure: false
+    service:
+      pipelines:
+        logs:
+          receivers:
+            - googlecloudpubsub
+          processors:
+            - batch
+          exporters:
+            - otlp
+
+signoz:
+  resources:
+    requests:
+      cpu: 1
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 1Gi
