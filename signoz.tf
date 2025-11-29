@@ -21,6 +21,7 @@ resource "helm_release" "signoz" {
   ]
 }
 
+
 ###############################################
 # Get OTEL Collector Service info
 ###############################################
@@ -68,7 +69,7 @@ resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
     ingress_class_name = "gce"
 
     rule {
-      host = "signoz.everphone.dev"
+      host = "signoz.everphone.dev" #for ip based access use this
       http {
         path {
           path      = "/"
@@ -92,6 +93,7 @@ resource "kubernetes_ingress_v1" "signoz_frontend_ingress" {
 # BackendConfig: health check on port 13133
 ###############################################
 resource "kubernetes_manifest" "otel_backendconfig" {
+
   manifest = {
     apiVersion = "cloud.google.com/v1"
     kind       = "BackendConfig"
