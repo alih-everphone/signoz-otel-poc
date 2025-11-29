@@ -1,6 +1,13 @@
+# ----------------------------------------------------------------------------
+# Storgage Class Configuration
+# ----------------------------------------------------------------------------
+
 global:
   storageClass: standard-rwo
 
+# ----------------------------------------------------------------------------
+# Resource Allocations
+# ----------------------------------------------------------------------------
 clickhouse:
   installCustomStorageClass: true
   resources:
@@ -30,6 +37,20 @@ otelCollector:
     limits:
       cpu: 2
       memory: 2Gi
+
+signoz:
+  resources:
+    requests:
+      cpu: 1
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+# ----------------------------------------------------------------------------
+# Configuration for GCP Pub/Sub Receiver and OTLP Exporter
+# ----------------------------------------------------------------------------
+otelCollector:
   config:
     receivers:
       googlecloudpubsub:
@@ -46,9 +67,11 @@ otelCollector:
                 - "*.run.app"
     exporters:
       otlp:
-        endpoint: signoz-ingest.everphone.dev:4317
+        endpoint: signoz-ingest.everphone.dev:4317 # Use this for otel collector public endpoint connected to load balancer
+        # endpoint: signoz-otel-collector:4317 # Use this for otel collector public endpoint connected to load balancer (IP based)
         tls:
           insecure: false
+
     service:
       pipelines:
         logs:
@@ -59,11 +82,20 @@ otelCollector:
           exporters:
             - otlp
 
-signoz:
-  resources:
-    requests:
-      cpu: 1
-      memory: 1Gi
-    limits:
-      cpu: 1
-      memory: 1Gi
+
+# ----------------------------------------------------------------------------
+# Service Account Annotations for GKE Workload Identity
+# ----------------------------------------------------------------------------
+otelCollector:
+  serviceAccount:
+    create: true
+    name: signoz-otel-collector
+    annotations:
+      iam.gke.io/gcp-service-account: signoz-sa@ali-hassan-devops-playground.iam.gserviceaccount.com
+
+otelCollectorAgent:
+  serviceAccount:
+    create: true
+    name: signoz-otel-collector-agent
+    annotations:
+      iam.gke.io/gcp-service-account: signoz-sa@ali-hassan-devops-playground.iam.gserviceaccount.com
