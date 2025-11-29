@@ -8,6 +8,7 @@ This Terraform configuration deploys a Google Cloud Platform (GCP) GKE cluster f
 - [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
 - GCP project with billing enabled
 - Appropriate IAM permissions to create GKE clusters
+- [Helm](https://helm.sh/docs/intro/install/) >= 3.0 (for SigNoz deployment)
 
 ## Configuration
 
@@ -59,6 +60,34 @@ Alternatively, apply all resources:
 terraform apply
 ```
 
+### 4. Configure kubectl Access
+
+After the cluster is created, configure kubectl:
+
+```bash
+gcloud container clusters get-credentials signoz-cluster --region us-central1
+```
+
+### 5. Update values.yaml
+
+Before deploying SigNoz, update the `values.yaml` file with your cluster-specific settings:
+
+```bash
+# Edit the values.yaml file
+nano values.yaml
+```
+
+Key settings to configure:
+
+- **Storage**: Adjust storage class and size for persistent volumes
+- **Resources**: Set CPU and memory limits based on your cluster capacity
+- **Ingress**: Configure ingress settings for external access
+- **Database**: Update database credentials if using external services
+
+For detailed configuration options and examples, refer to the official SigNoz Helm charts documentation:
+
+📚 [SigNoz Helm Charts](https://github.com/SigNoz/charts/tree/main/charts)
+
 ## Cleanup
 
 To destroy the cluster:
@@ -72,3 +101,5 @@ terraform destroy
 - The `deletion_protection = false` setting allows easier cleanup for PoC environments
 - Ensure you have sufficient GCP quotas for GKE cluster creation
 - Monitor GCP billing to manage costs
+- Review and customize `values.yaml` before deploying SigNoz Helm chart
+- Consult the [SigNoz Helm charts repository](https://github.com/SigNoz/charts/tree/main/charts) for deployment best practices and advanced configurations
